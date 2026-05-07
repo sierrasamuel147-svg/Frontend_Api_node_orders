@@ -1,36 +1,165 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sistema de Gestión de Órdenes
 
-## Getting Started
+Aplicación web moderna para la gestión de órdenes y productos, desarrollada con Next.js y una interfaz profesional basada en Ignite UI.
 
-First, run the development server:
+---
+
+# Tecnologías Utilizadas
+
+## Frontend
+
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Ignite UI React Grids
+
+## Backend API
+
+- Node.js
+- API REST
+- Desplegada en Microsoft Azure
+
+---
+
+# Funcionalidades Principales
+
+- Gestión de órdenes
+- Gestión de productos
+- Visualización de detalles de productos
+- Visualización de detalles de órdenes
+- Dashboard moderno
+- Diseño responsive
+- Tablas dinámicas con Ignite UI
+- Operaciones CRUD
+- Integración con API REST
+- Navegación moderna
+
+---
+
+# Arquitectura del Proyecto
+
+```plaintext
+app/
+ ├── dashboard/
+ ├── orders/
+ ├── products/
+ ├── services/
+ ├── types/
+```
+
+---
+
+# Librería UI Principal
+
+La principal librería utilizada para el manejo de tablas y grids fue:
+
+- Ignite UI for React
+
+Características utilizadas:
+
+- Grids dinámicos
+- Templates personalizados
+- Renderizado de datos
+- Tablas responsivas
+- Estilos modernos
+
+---
+
+# Integración con API
+
+El frontend consume una API REST desarrollada en Node.js y desplegada en Azure.
+
+Principales endpoints utilizados:
+
+- Orders
+- Products
+- Customers
+
+---
+
+# Instalación del Proyecto
+
+## Clonar repositorio
+
+```bash
+git clone URL_DEL_REPOSITORIO
+```
+
+---
+
+## Instalar dependencias
+
+```bash
+npm install
+```
+
+---
+
+## Ejecutar en desarrollo
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# Compilar Proyecto
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+# Ejecutar en Producción
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+# Variables de Entorno
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Crear un archivo `.env.local`:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```env
+NEXT_PUBLIC_API_URL=URL_DE_LA_API
+```
+
+---
+
+# Flujo de Trabajo Git
+
+Este proyecto utiliza:
+
+- Git Flow
+- Commits semánticos
+
+Ejemplos:
+
+```bash
+feat: agregar módulo de productos
+fix: corregir renderizado del grid
+style: mejorar interfaz del dashboard
+```
+
+---
+
+# Despliegue
+
+## Frontend
+
+- Vercel
+- Compatible con despliegue Next.js
+
+## Backend
+
+- Microsoft Azure
+
+---
+
+# Autor
+
+Proyecto desarrollado por Sergio Gomez y Samuel Sierra como plataforma moderna de gestión de órdenes utilizando Next.js, Azure e Ignite UI.
