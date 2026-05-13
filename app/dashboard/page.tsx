@@ -1,12 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+
 import { IgrCard } from "igniteui-react";
+
 import { getOrders } from "@/app/services/orders";
 import type { Order } from "@/app/types/order";
 
+// 🔥 GRID DINÁMICO (SSR OFF)
+const OrdersGrid = dynamic(
+  () => import("../types/orders-grid"),
+  {
+    ssr: false,
+  }
+);
+
 export default function Dashboard() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  // =========================
+  // STATE
+  // =========================
+  const [orders, setOrders] =
+    useState<Order[]>([]);
 
   const [loading, setLoading] =
     useState(true);
@@ -14,19 +29,35 @@ export default function Dashboard() {
   const [error, setError] =
     useState<string | null>(null);
 
+  // 🔍 SEARCH
+  const [search, setSearch] =
+    useState("");
+
+  // 📄 PAGINATION
+  const [page, setPage] =
+    useState(1);
+
+  const pageSize = 5;
+
+  // =========================
+  // LOAD DATA
+  // =========================
   const loadData = async () => {
     try {
       setLoading(true);
 
-      const data = await getOrders();
+      const data =
+        await getOrders();
 
       setOrders(data);
+
     } catch (err) {
       console.error(err);
 
       setError(
-        "Error cargando datos"
+        "Error cargando dashboard"
       );
+
     } finally {
       setLoading(false);
     }
@@ -36,37 +67,103 @@ export default function Dashboard() {
     loadData();
   }, []);
 
-  // 🔹 MÉTRICAS
-  const totalOrders = orders.length;
+  // =========================
+  // FILTER
+  // =========================
+  const filteredOrders =
+    useMemo(() => {
+      return orders.filter(
+        (order) => {
+          const query =
+            search.toLowerCase();
 
-  const totalRevenue = orders.reduce(
-    (acc, order) =>
-      acc + order.totalAmount,
-    0
-  );
+          const customerName =
+            `${order.customer.firstName} ${order.customer.lastName}`.toLowerCase();
+
+          return (
+            order.orderNumber
+              ?.toLowerCase()
+              .includes(query) ||
+
+            customerName.includes(
+              query
+            )
+          );
+        }
+      );
+    }, [orders, search]);
+
+  // =========================
+  // PAGINATION
+  // =========================
+  const totalPages =
+    Math.ceil(
+      filteredOrders.length /
+        pageSize
+    );
+
+  const paginatedOrders =
+    filteredOrders.slice(
+      (page - 1) * pageSize,
+      page * pageSize
+    );
+
+  // =========================
+  // GRID DATA
+  // =========================
+  const gridData =
+    paginatedOrders.map(
+      (order) => ({
+        ...order,
+
+        customerName:
+          `${order.customer.firstName} ${order.customer.lastName}`,
+      })
+    );
+
+  // =========================
+  // METRICS
+  // =========================
+  const totalOrders =
+    filteredOrders.length;
+
+  const totalRevenue =
+    filteredOrders.reduce(
+      (acc, order) =>
+        acc + order.totalAmount,
+      0
+    );
 
   const averageOrder =
     totalOrders > 0
-      ? totalRevenue / totalOrders
+      ? totalRevenue /
+        totalOrders
       : 0;
 
   const lastOrder =
-    orders.length > 0
-      ? orders[orders.length - 1]
+    filteredOrders.length > 0
+      ? filteredOrders[
+          filteredOrders.length -
+            1
+        ]
       : null;
 
-  // 🔹 LOADING
+  // =========================
+  // LOADING
+  // =========================
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-slate-500 text-lg animate-pulse">
+        <div className="text-slate-500 text-xl animate-pulse">
           Cargando dashboard...
         </div>
       </div>
     );
   }
 
-  // 🔹 ERROR
+  // =========================
+  // ERROR
+  // =========================
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 text-red-600 rounded-2xl p-6">
@@ -77,20 +174,19 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      {/* 🔹 HEADER */}
-      <div className="flex flex-col gap-2">
-        <h1 className="text-4xl font-bold tracking-tight text-slate-900">
+
+      {/* HEADER */}
+      <div>
+        <h1 className="text-4xl font-bold text-slate-900">
           Dashboard
         </h1>
 
-        <p className="text-slate-500 text-lg">
-          Resumen general de pedidos,
-          ventas y métricas del
-          sistema.
+        <p className="text-slate-500 text-lg mt-2">
+          Gestión avanzada de pedidos y métricas.
         </p>
       </div>
 
-      {/* 🔹 HERO */}
+      {/* HERO */}
       <div
         className="
           relative
@@ -105,209 +201,97 @@ export default function Dashboard() {
         "
       >
         <div className="relative z-10">
-          <p className="text-slate-300 text-sm uppercase tracking-widest mb-3">
-            Sistema de Gestión de
-            Pedidos
+
+          <p className="uppercase tracking-widest text-slate-300 text-sm mb-3">
+            Orders Management System
           </p>
 
           <h2 className="text-5xl font-bold mb-4">
-            Bienvenido de nuevo 
+            Panel de Control
           </h2>
 
-          <p className="max-w-2xl text-slate-300 text-lg leading-relaxed">
-            Controla tus ventas,
-            monitorea pedidos y
-            administra productos desde
-            un dashboard moderno y
-            profesional.
+          <p className="max-w-2xl text-slate-300 text-lg">
+            Monitorea pedidos, ventas y actividad comercial en tiempo real.
           </p>
+
         </div>
 
-        {/* 🔹 DECORACIÓN */}
-        <div
-          className="
-            absolute
-            -right-16
-            -top-16
-            w-72
-            h-72
-            bg-white/10
-            rounded-full
-          "
-        />
+        <div className="absolute -right-20 -top-20 w-72 h-72 bg-white/10 rounded-full" />
 
-        <div
-          className="
-            absolute
-            right-20
-            bottom-0
-            w-40
-            h-40
-            bg-white/5
-            rounded-full
-          "
-        />
+        <div className="absolute right-10 bottom-0 w-40 h-40 bg-white/5 rounded-full" />
       </div>
 
-      {/* 🔹 TARJETAS */}
-      <div
-        className="
-          grid
-          grid-cols-1
-          sm:grid-cols-2
-          xl:grid-cols-4
-          gap-6
-        "
-      >
-        {/* TOTAL PEDIDOS */}
-        <IgrCard
-          className="
-            rounded-3xl
-            border
-            border-slate-200
-            bg-white
-            shadow-sm
-            hover:shadow-xl
-            transition-all
-            duration-300
-          "
-        >
+      {/* METRICS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+
+        {/* TOTAL */}
+        <IgrCard className="rounded-3xl border border-slate-200 bg-white shadow-sm hover:shadow-xl transition-all">
           <div className="p-7">
-            <div
-              className="
-                w-14
-                h-14
-                rounded-2xl
-                bg-blue-100
-                flex
-                items-center
-                justify-center
-                text-2xl
-                mb-6
-              "
-            >
+
+            <div className="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center text-2xl mb-6">
               📦
             </div>
 
             <p className="text-slate-500 text-sm mb-2">
-              Total de Pedidos
+              Total Pedidos
             </p>
 
             <h3 className="text-4xl font-bold text-slate-900">
               {totalOrders}
             </h3>
+
           </div>
         </IgrCard>
 
-        {/* TOTAL VENDIDO */}
-        <IgrCard
-          className="
-            rounded-3xl
-            border
-            border-slate-200
-            bg-white
-            shadow-sm
-            hover:shadow-xl
-            transition-all
-            duration-300
-          "
-        >
+        {/* SALES */}
+        <IgrCard className="rounded-3xl border border-slate-200 bg-white shadow-sm hover:shadow-xl transition-all">
           <div className="p-7">
-            <div
-              className="
-                w-14
-                h-14
-                rounded-2xl
-                bg-green-100
-                flex
-                items-center
-                justify-center
-                text-2xl
-                mb-6
-              "
-            >
+
+            <div className="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center text-2xl mb-6">
               💰
             </div>
 
             <p className="text-slate-500 text-sm mb-2">
-              Total Vendido
+              Total Ventas
             </p>
 
             <h3 className="text-4xl font-bold text-slate-900">
               $
-              {totalRevenue.toFixed(2)}
+              {totalRevenue.toFixed(
+                2
+              )}
             </h3>
+
           </div>
         </IgrCard>
 
-        {/* PROMEDIO */}
-        <IgrCard
-          className="
-            rounded-3xl
-            border
-            border-slate-200
-            bg-white
-            shadow-sm
-            hover:shadow-xl
-            transition-all
-            duration-300
-          "
-        >
+        {/* AVG */}
+        <IgrCard className="rounded-3xl border border-slate-200 bg-white shadow-sm hover:shadow-xl transition-all">
           <div className="p-7">
-            <div
-              className="
-                w-14
-                h-14
-                rounded-2xl
-                bg-orange-100
-                flex
-                items-center
-                justify-center
-                text-2xl
-                mb-6
-              "
-            >
+
+            <div className="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center text-2xl mb-6">
               📈
             </div>
 
             <p className="text-slate-500 text-sm mb-2">
-              Promedio por Pedido
+              Promedio
             </p>
 
             <h3 className="text-4xl font-bold text-slate-900">
               $
-              {averageOrder.toFixed(2)}
+              {averageOrder.toFixed(
+                2
+              )}
             </h3>
+
           </div>
         </IgrCard>
 
-        {/* ÚLTIMO PEDIDO */}
-        <IgrCard
-          className="
-            rounded-3xl
-            border
-            border-slate-200
-            bg-white
-            shadow-sm
-            hover:shadow-xl
-            transition-all
-            duration-300
-          "
-        >
+        {/* LAST */}
+        <IgrCard className="rounded-3xl border border-slate-200 bg-white shadow-sm hover:shadow-xl transition-all">
           <div className="p-7">
-            <div
-              className="
-                w-14
-                h-14
-                rounded-2xl
-                bg-purple-100
-                flex
-                items-center
-                justify-center
-                text-2xl
-                mb-6
-              "
-            >
+
+            <div className="w-14 h-14 rounded-2xl bg-purple-100 flex items-center justify-center text-2xl mb-6">
               🚚
             </div>
 
@@ -315,111 +299,187 @@ export default function Dashboard() {
               Último Pedido
             </p>
 
-            <h3 className="text-4xl font-bold text-slate-900">
+            <h3 className="text-2xl font-bold text-slate-900">
               {lastOrder
-                ? `#${lastOrder.id}`
+                ? lastOrder.orderNumber
                 : "N/D"}
             </h3>
+
           </div>
         </IgrCard>
       </div>
 
-      {/* 🔹 SECCIÓN EXTRA */}
-      <div
-        className="
-          grid
-          grid-cols-1
-          xl:grid-cols-2
-          gap-6
-        "
-      >
-        {/* RESUMEN */}
-        <IgrCard
-          className="
-            rounded-3xl
-            border
-            border-slate-200
-            bg-white
-            shadow-sm
-          "
-        >
-          <div className="p-8">
-            <h3 className="text-2xl font-bold text-slate-900 mb-6">
-              Resumen de Pedidos
-            </h3>
+      {/* SYSTEM STATUS */}
+      <IgrCard className="rounded-3xl border border-slate-200 bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl">
+        <div className="p-8">
 
-            <div className="space-y-4">
-              <div className="flex justify-between">
-                <span className="text-slate-500">
-                  Total de Pedidos
-                </span>
+          <p className="uppercase tracking-widest text-blue-200 text-sm mb-3">
+            Rendimiento
+          </p>
 
-                <span className="font-semibold">
-                  {totalOrders}
-                </span>
-              </div>
+          <h3 className="text-3xl font-bold mb-4">
+            Estado del Sistema
+          </h3>
 
-              <div className="flex justify-between">
-                <span className="text-slate-500">
-                  Total Vendido
-                </span>
+          <p className="text-blue-100 leading-relaxed mb-8">
+            El sistema se encuentra conectado correctamente con la API y todos los módulos principales funcionan de manera estable.
+          </p>
 
-                <span className="font-semibold">
-                  $
-                  {totalRevenue.toFixed(
-                    2
-                  )}
-                </span>
-              </div>
+          <div className="flex flex-col sm:flex-row gap-4">
 
-              <div className="flex justify-between">
-                <span className="text-slate-500">
-                  Promedio de Venta
-                </span>
+            {/* API BUTTON */}
+            <a
+              href="https://ordersapi-epg9cfe7gfh4dxa5.chilecentral-01.azurewebsites.net"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="
+                flex-1
+                rounded-2xl
+                bg-white
+                px-6
+                py-4
+                text-center
+                font-semibold
+                text-slate-900
+                transition
+                hover:scale-[1.02]
+                hover:bg-slate-100
+              "
+            >
+              Ver API
+            </a>
 
-                <span className="font-semibold">
-                  $
-                  {averageOrder.toFixed(
-                    2
-                  )}
-                </span>
-              </div>
+            {/* SWAGGER BUTTON */}
+            <a
+              href="https://ordersapi-epg9cfe7gfh4dxa5.chilecentral-01.azurewebsites.net/api-docs/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="
+                flex-1
+                rounded-2xl
+                border
+                border-white/30
+                bg-white/10
+                px-6
+                py-4
+                text-center
+                font-semibold
+                text-white
+                backdrop-blur-sm
+                transition
+                hover:bg-white/20
+              "
+            >
+              Ver Swagger
+            </a>
+
+          </div>
+        </div>
+      </IgrCard>
+
+      {/* GRID */}
+      <IgrCard className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+
+        <div className="p-8">
+
+          {/* HEADER GRID */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900">
+                Pedidos
+              </h2>
+
+              <p className="text-slate-500 mt-1">
+                {
+                  filteredOrders.length
+                } resultados encontrados
+              </p>
             </div>
+
+            {/* SEARCH */}
+            <input
+              type="text"
+              placeholder="Buscar pedido o cliente..."
+              value={search}
+              onChange={(e) => {
+                setSearch(
+                  e.target.value
+                );
+
+                setPage(1);
+              }}
+              className="
+                w-full
+                lg:w-[350px]
+                rounded-2xl
+                border
+                border-slate-300
+                px-4
+                py-3
+                outline-none
+                transition
+                focus:ring-2
+                focus:ring-blue-500
+                focus:border-blue-500
+              "
+            />
+
           </div>
-        </IgrCard>
 
-        {/* ESTADO */}
-        <IgrCard
-          className="
-            rounded-3xl
-            border
-            border-slate-200
-            bg-gradient-to-br
-            from-blue-600
-            to-indigo-700
-            text-white
-            shadow-xl
-          "
-        >
-          <div className="p-8">
-            <p className="uppercase tracking-widest text-blue-200 text-sm mb-3">
-              Estado del Sistema
-            </p>
+          {/* GRID */}
+          <OrdersGrid
+            data={gridData}
+          />
 
-            <h3 className="text-3xl font-bold mb-4">
-              Todo funciona
-              correctamente
-            </h3>
+          {/* PAGINATION */}
+          <div className="flex justify-end items-center gap-4 mt-6">
 
-            <p className="text-blue-100 leading-relaxed">
-              El dashboard está
-              conectado exitosamente y
-              todos los servicios se
-              encuentran operativos.
-            </p>
+            <button
+              disabled={page === 1}
+              onClick={() =>
+                setPage(page - 1)
+              }
+              className="
+                px-4
+                py-2
+                rounded-xl
+                border
+                border-slate-300
+                disabled:opacity-50
+              "
+            >
+              Anterior
+            </button>
+
+            <span className="text-slate-600">
+              Página {page} de{" "}
+              {totalPages || 1}
+            </span>
+
+            <button
+              disabled={
+                page === totalPages ||
+                totalPages === 0
+              }
+              onClick={() =>
+                setPage(page + 1)
+              }
+              className="
+                px-4
+                py-2
+                rounded-xl
+                border
+                border-slate-300
+                disabled:opacity-50
+              "
+            >
+              Siguiente
+            </button>
+
           </div>
-        </IgrCard>
-      </div>
+        </div>
+      </IgrCard>
     </div>
   );
 }
