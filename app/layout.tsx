@@ -136,6 +136,23 @@ export default function RootLayout({
               >
                 Products
               </Link>
+
+               <Link
+                href="/error"
+                className="
+                  px-4 py-2
+                  rounded-xl
+                  text-sm
+                  font-medium
+                  text-slate-700
+                  transition-all
+                  duration-200
+                  hover:bg-slate-200
+                  hover:text-slate-900
+                "
+              >
+                Errores
+              </Link>
             </nav>
           </div>
         </header>
